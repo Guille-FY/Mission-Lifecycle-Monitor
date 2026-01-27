@@ -24,7 +24,7 @@ The project consists of three main subsystems:
     *   **OpenTelemetry Collector**: Aggregates data from the Flight Computer.
     *   **Prometheus**: Stores time-series metrics (Fuel levels, Speed).
     *   **Jaeger**: Visualizes distributed traces (Launch sequence transactions).
-    *   **Grafana**: (Optional) Analysis of telemetry data.
+
 
 ---
 
@@ -32,7 +32,7 @@ The project consists of three main subsystems:
 
 *   **Frontend**: Next.js 15, React 19, Tailwind CSS, Lucide Icons, Tremor/Recharts.
 *   **Backend**: Node.js, Express.js.
-*   **Observability**: OpenTelemetry (Node.js SDK), Docker, Prometheus, Jaeger, Grafana.
+*   **Observability**: OpenTelemetry (Node.js SDK), Docker, Prometheus, Jaeger.
 *   **Automation**: PowerShell scripting.
 
 ---
