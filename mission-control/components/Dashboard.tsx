@@ -1,10 +1,10 @@
 /* src/components/Dashboard.tsx */
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AreaChart } from '@tremor/react';
+import { useState, useEffect, useRef } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import startOtel from '../utils/otel';
-import { Play, Square, RotateCcw, Activity, Zap, TrendingUp, Cpu, Gauge } from 'lucide-react';
+import { Play, Square, RotateCcw, Activity, Zap, TrendingUp, Cpu, Gauge, Pause } from 'lucide-react';
 
 // Types matches Backend state
 type MissionState = {
@@ -16,13 +16,61 @@ type MissionState = {
     mission_time: number;
 };
 
+// Color Helper
+const getChartColor = (status: string) => {
+    switch (status) {
+        case 'FLYING': return '#10b981'; // emerald-500
+        case 'ORBIT': return '#8b5cf6'; // violet-500
+        case 'ABORT': return '#ef4444'; // red-500
+        case 'COUNTDOWN': return '#f59e0b'; // amber-500
+        default: return '#3b82f6'; // blue-500
+    }
+};
+
+// Smooth Number Component
+const AnimatedNumber = ({ value }: { value: number }) => {
+    const [displayValue, setDisplayValue] = useState(value);
+    const previousValue = useRef(value);
+    const startTime = useRef(0);
+
+    useEffect(() => {
+        previousValue.current = displayValue;
+        startTime.current = performance.now();
+        const duration = 900; // Slightly less than 1000ms interval
+
+        let raf: number;
+
+        const animate = (now: number) => {
+            const elapsed = now - startTime.current;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease-out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+
+            const nextValue = previousValue.current + (value - previousValue.current) * ease;
+            setDisplayValue(nextValue);
+
+            if (progress < 1) {
+                raf = requestAnimationFrame(animate);
+            }
+        };
+
+        raf = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(raf);
+    }, [value]);
+
+    return <span className="tabular-nums">{Math.floor(displayValue)}</span>;
+};
+
 export default function Dashboard() {
     const [data, setData] = useState<MissionState | null>(null);
     const [history, setHistory] = useState<{ time: string; altitude: number, speed: number, fuel: number }[]>([]);
 
+
     useEffect(() => {
         startOtel();
     }, []);
+
+
 
     const getBackfilledHistory = () => {
         const now = new Date();
@@ -40,11 +88,14 @@ export default function Dashboard() {
     useEffect(() => {
         setHistory(getBackfilledHistory());
 
+
+
         const interval = setInterval(async () => {
             try {
                 const res = await fetch('http://localhost:8080/telemetry');
                 const json = await res.json();
                 setData(json);
+
 
                 if (json.status === 'FLYING') {
                     setHistory((prev) => {
@@ -74,6 +125,7 @@ export default function Dashboard() {
                         return [...prev.slice(-60), idlePoint];
                     });
                 }
+
             } catch (e) {
                 console.error("Telemetry link lost", e);
             }
@@ -111,6 +163,8 @@ export default function Dashboard() {
             {children}
         </div>
     );
+
+    const activeColor = getChartColor(data.status);
 
     return (
         <main className="min-h-screen bg-black text-white p-6 md:p-12 font-sans selection:bg-white selection:text-black">
@@ -221,51 +275,55 @@ export default function Dashboard() {
                                 <span>REC</span>
                             </div>}
                         >
-                            <div className="absolute top-16 left-8 z-10">
-                                <div className="text-4xl font-mono font-light text-white">{Math.floor(data.altitude)}</div>
+                            <div className="absolute top-16 left-8 z-10 pointer-events-none">
+                                <div className="text-4xl font-mono font-light text-white"><AnimatedNumber value={data.altitude} /></div>
                                 <div className="text-[10px] text-neutral-500 uppercase tracking-widest mt-1">Altitude (m)</div>
                             </div>
 
-                            <div className="w-full h-full pt-8">
-                                <AreaChart
-                                    className="h-full w-full"
-                                    data={history}
-                                    index="time"
-                                    categories={["altitude"]}
-                                    colors={data.status === 'ABORT' ? ["red"] : data.status === 'FLYING' ? ["emerald"] : data.status === 'ORBIT' ? ["violet"] : ["slate"]}
-                                    showAnimation={true}
-                                    showLegend={false}
-                                    showGridLines={true}
-                                    showXAxis={true}
-                                    showYAxis={false}
-                                    curveType="monotone"
-                                    autoMinValue={false}
-                                    minValue={0}
-                                    valueFormatter={(v) => `${Math.round(v)} m`}
-                                />
-                                <style jsx global>{`
-                                    /* Minimalist Chart Overrides for "Notion" look */
-                                    .recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line {
-                                        stroke: #222 !important;
-                                        stroke-dasharray: 2 4;
-                                    }
-                                    path.recharts-curve {
-                                        stroke-width: 2px !important;
-                                        opacity: 1 !important;
-                                    }
-                                    .recharts-area {
-                                        fill-opacity: 0.3 !important;
-                                    }
-                                    .recharts-tooltip-cursor {
-                                        stroke: #444 !important;
-                                    }
-                                    /* Fix Tooltip Text */
-                                    .recharts-tooltip-item-list li {
-                                        color: #aaa !important;
-                                        font-family: monospace;
-                                        font-size: 0.75rem;
-                                    }
-                                `}</style>
+                            <div
+                                className="w-full h-full pt-8 font-mono text-[10px]"
+
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={history}>
+                                        <defs>
+                                            <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={activeColor} stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor={activeColor} stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="#222" />
+                                        <XAxis dataKey="time" hide={true} />
+                                        <YAxis hide={true} domain={[0, 'auto']} />
+                                        <Tooltip
+                                            isAnimationActive={false}
+                                            cursor={{ stroke: '#444', strokeWidth: 1 }}
+                                            content={({ payload, active, label }) => {
+                                                if (!active || !payload || payload.length === 0) return null;
+                                                return (
+                                                    <div className="bg-black/90 border border-neutral-800 p-2 text-xs font-mono shadow-xl backdrop-blur-sm">
+                                                        <div className="text-neutral-400 mb-1">{label}</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeColor }} />
+                                                            <span className="text-white">
+                                                                {payload[0].value} <span className="text-neutral-500">m</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="altitude"
+                                            stroke={activeColor}
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorGradient)"
+                                            isAnimationActive={false}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             </div>
                         </Card>
                     </div>
@@ -276,7 +334,7 @@ export default function Dashboard() {
                         {/* VELOCITY */}
                         <Card title="Velocity" action={<Gauge size={14} className="text-neutral-600" />}>
                             <div className="mb-4">
-                                <span className="text-4xl font-mono font-light tabular-nums">{Math.floor(data.speed)}</span>
+                                <span className="text-4xl font-mono font-light tabular-nums"><AnimatedNumber value={data.speed} /></span>
                                 <span className="text-xs text-neutral-500 ml-2">km/h</span>
                             </div>
                             <div className="w-full bg-neutral-900 h-px mb-1">
@@ -292,7 +350,7 @@ export default function Dashboard() {
                         {/* FUEL */}
                         <Card title="Propellant" action={<Activity size={14} className="text-neutral-600" />}>
                             <div className="mb-4">
-                                <span className="text-4xl font-mono font-light tabular-nums">{Math.floor(data.fuel)}</span>
+                                <span className="text-4xl font-mono font-light tabular-nums"><AnimatedNumber value={data.fuel} /></span>
                                 <span className="text-xs text-neutral-500 ml-2">%</span>
                             </div>
                             <div className="flex gap-0.5">

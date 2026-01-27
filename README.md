@@ -26,11 +26,24 @@ The project consists of three main subsystems:
     *   **Jaeger**: Visualizes distributed traces (Launch sequence transactions).
 
 
+
+---
+
+## ✨ Key Features
+
+*   **Realistic Physics Engine**: Simulates "Gravity Turn" mechanics, air resistance, and orbital velocity transitions.
+*   **Real-time Telemetry**: 1Hz data updates for Altitude, Speed, and Fuel Status.
+*   **Reactive Dashboard**: 
+    *   **Animated Metrics**: Smooth number interpolation for a fluid "cockpit" feel.
+    *   **Live Charts**: High-performance Area Charts utilizing Recharts with optimized rendering.
+    *   **Smart Tooltips**: Custom-built, non-blocking tooltips for data inspection during active flights.
+*   **Full Observability**: Every action is traced from the click in the browser to the backend logic.
+
 ---
 
 ## 🛠️ Tech Stack
 
-*   **Frontend**: Next.js 15, React 19, Tailwind CSS, Lucide Icons, Tremor/Recharts.
+*   **Frontend**: Next.js 15, React 19, Tailwind CSS, Lucide Icons, Recharts (Custom Implementation).
 *   **Backend**: Node.js, Express.js.
 *   **Observability**: OpenTelemetry (Node.js SDK), Docker, Prometheus, Jaeger.
 *   **Automation**: PowerShell scripting.

@@ -54,14 +54,16 @@ setInterval(() => {
         // --- PHASE 1: ASCENT ---
         // Burn fuel to gain speed
         if (state.fuel > 0) {
-            state.fuel -= 0.6; // ~166 seconds of fuel
-            state.speed += 170 + (Math.random() * 20); // Accelerate ~28,000 km/h in 160s
+            state.fuel -= 0.7; // ~142 seconds of burn time
+            state.speed += 210 + (Math.random() * 30); // Higher Install Thrust
         } else {
-            state.speed -= 50; // Drag if out of fuel but not in orbit (simplified)
+            state.speed -= 50; // Drag
         }
 
         // Increase altitude based on speed (km/h -> m/s)
-        state.altitude += (state.speed / 3.6);
+        // SIMULATE GRAVITY TURN: Only ~35% of velocity is vertical at this stage
+        // Use a dynamic ratio that decreases as we go higher would be best, but fixed 0.35 works for demo
+        state.altitude += (state.speed / 3.6) * 0.35;
 
         // --- PHASE 2: ORBIT INJECTION ---
         // Target Orbit Altitude: 170km (170,000m)
