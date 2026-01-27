@@ -10,7 +10,7 @@ const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumenta
 // 1. Define Service Identity
 // This name will appear in Jaeger and Prometheus as the source of data.
 const resource = resourceFromAttributes({
-    [SEMRESATTRS_SERVICE_NAME]: 'miura-flight-computer',
+    [SEMRESATTRS_SERVICE_NAME]: 'flight-computer',
 });
 
 // 2. SDK Configuration

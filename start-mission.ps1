@@ -20,8 +20,8 @@ Start-Sleep -Seconds 5
 # 2. Start Flight Computer (Backend) with OTel Instrumentation
 Write-Host "Step 2: Launching Flight Computer (Backend)..." -ForegroundColor Cyan
 try {
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "Write-Host 'Flight Computer'; node --require ./flight-computer/instrumentation.js flight-computer/app.js"
-    Write-Host "Flight Computer launched in a new window." -ForegroundColor Green
+    $backendProcess = Start-Process powershell -ArgumentList "-NoExit", "-Command", "Write-Host 'Flight Computer'; node --require ./flight-computer/instrumentation.js flight-computer/app.js" -PassThru
+    Write-Host "Flight Computer launched in a new window (PID: $($backendProcess.Id))." -ForegroundColor Green
 }
 catch {
     Write-Error "Failed to launch Flight Computer."
@@ -30,8 +30,8 @@ catch {
 # 3. Start Mission Control (Frontend)
 Write-Host "Step 3: Launching Mission Control (Frontend)..." -ForegroundColor Cyan
 try {
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd mission-control; npm run dev"
-    Write-Host "Mission Control launched in a new window." -ForegroundColor Green
+    $frontendProcess = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd mission-control; npm run dev" -PassThru
+    Write-Host "Mission Control launched in a new window (PID: $($frontendProcess.Id))." -ForegroundColor Green
 }
 catch {
     Write-Error "Failed to launch Mission Control."
@@ -47,7 +47,17 @@ $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""
 Write-Host "STOPPING Mission and cleaning up..." -ForegroundColor Red
 
+# Stop processes
+if ($backendProcess) {
+    Write-Host "Stopping Flight Computer (PID: $($backendProcess.Id))..." -ForegroundColor Yellow
+    taskkill /F /T /PID $backendProcess.Id | Out-Null
+}
+if ($frontendProcess) {
+    Write-Host "Stopping Mission Control (PID: $($frontendProcess.Id))..." -ForegroundColor Yellow
+    taskkill /F /T /PID $frontendProcess.Id | Out-Null
+}
+
 # Stop Docker containers
 docker-compose -f ground-station/docker-compose.yaml down
 
-Write-Host "Docker containers removed. You can now close the other windows." -ForegroundColor Green
+Write-Host "Mission terminated. All windows and containers closed." -ForegroundColor Green

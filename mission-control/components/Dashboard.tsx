@@ -177,6 +177,24 @@ export default function Dashboard() {
                                         <RotateCcw size={12} /> Reset
                                     </button>
                                 </div>
+                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-neutral-800 mt-4">
+                                    <a
+                                        href="http://localhost:16686"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="h-10 border border-neutral-800 text-neutral-500 hover:border-amber-500 hover:text-amber-500 transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest no-underline"
+                                    >
+                                        <Activity size={12} /> Sys_Traces
+                                    </a>
+                                    <a
+                                        href="http://localhost:9090"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="h-10 border border-neutral-800 text-neutral-500 hover:border-purple-500 hover:text-purple-500 transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest no-underline"
+                                    >
+                                        <TrendingUp size={12} /> Sys_Metrics
+                                    </a>
+                                </div>
                             </div>
                         </Card>
                     </div>

@@ -24,7 +24,6 @@ The project consists of three main subsystems:
     *   **OpenTelemetry Collector**: Aggregates data from the Flight Computer.
     *   **Prometheus**: Stores time-series metrics (Fuel levels, Speed).
     *   **Jaeger**: Visualizes distributed traces (Launch sequence transactions).
-    *   **Loki**: Log aggregation.
     *   **Grafana**: (Optional) Analysis of telemetry data.
 
 ---
@@ -66,6 +65,11 @@ We have provided a comprehensive PowerShell script that orchestrates the entire 
     *   Launch Mission Control in a new window.
     *   Tell you when ready!
 
+4.  **Graceful Shutdown**: Press any key in the main PowerShell window to stop the mission. The script will automatically:
+    *   Find and close the Flight Computer window.
+    *   Find and close the Mission Control window.
+    *   Stop and remove all Docker containers.
+
 ### Method 2: Manual Start
 
 If you prefer to run things manually or are on a non-Windows system:
@@ -102,10 +106,9 @@ If you prefer to run things manually or are on a non-Windows system:
     *   Observe the countdown.
     *   Watch the status change to `FLYING`.
     *   See telemetry (Altitude, Speed) increase and Fuel decrease.
-4.  **Abort**: If things go wrong, hit **"ABORT MISSION"**.
-5.  **Telemetry**:
-    *   You can view the raw metrics in **Prometheus** (usually `http://localhost:9090`).
-    *   You can view the traces of your commands in **Jaeger** (usually `http://localhost:16686`).
+4.  **Telemetry Analysis**:
+    *   Click **"SYS_TRACES"** in the Command Sequence panel to open **Jaeger** and view distributed traces of your commands (Launch/Abort/Reset).
+    *   Click **"SYS_METRICS"** to open **Prometheus** and analyze raw system metrics like `rocket_fuel_level` or `rocket_speed`.
 
 ## 📂 Project Structure
 

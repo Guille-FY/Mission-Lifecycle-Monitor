@@ -72,7 +72,7 @@ setInterval(() => {
  */
 app.post('/start', (req, res) => {
     // Create a manual span to track this critical command
-    const span = trace.getTracer('mission-control').startSpan('start_sequence_command');
+    const span = trace.getTracer('mission-control').startSpan('mission.launch');
 
     if (state.status === 'IDLE') {
         state.status = 'COUNTDOWN';
@@ -102,9 +102,14 @@ app.get('/telemetry', (req, res) => {
  * Trigger: Emergency stop.
  */
 app.post('/abort', (req, res) => {
+    const span = trace.getTracer('mission-control').startSpan('mission.abort');
     state.status = 'ABORT';
     state.speed = 0;
     console.log("🚨 MISSION ABORTED");
+
+    span.addEvent('Mission Aborted');
+    span.end();
+
     res.json({ message: "Aborted" });
 });
 
@@ -113,8 +118,13 @@ app.post('/abort', (req, res) => {
  * Trigger: Reset simulation to initial state.
  */
 app.post('/reset', (req, res) => {
+    const span = trace.getTracer('mission-control').startSpan('mission.reset');
     state = { status: 'IDLE', fuel: 100, altitude: 0, speed: 0, countdown: 180 };
     console.log("🔄 System Reset");
+
+    span.addEvent('System Reset');
+    span.end();
+
     res.json({ message: "Reset OK" });
 });
 
