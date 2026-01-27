@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s # Fast scrape interval for demo purposes
+
+scrape_configs:
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889'] # Prometheus metrics exposed by the collector
+      - targets: ['otel-collector:8888'] # Internal metrics from the collector

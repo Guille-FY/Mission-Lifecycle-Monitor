@@ -1,0 +1,53 @@
+# Mission Lifecycle Monitor - Start Script
+
+Write-Host "Starting Mission Lifecycle Monitor Sequence..." -ForegroundColor Green
+
+# 1. Start Ground Station (Infrastructure)
+Write-Host "Step 1: Launching Ground Station (Docker Infrastructure)..." -ForegroundColor Cyan
+docker-compose -f ground-station/docker-compose.yaml up -d
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Ground Station started successfully." -ForegroundColor Green
+}
+else {
+    Write-Error "Failed to start Ground Station. Please ensure Docker Desktop is running." 
+}
+
+# Wait for services to effectively start listening (simulated wait)
+Write-Host "Waiting 5 seconds for services to warm up..." -ForegroundColor Yellow
+Start-Sleep -Seconds 5
+
+# 2. Start Flight Computer (Backend) with OTel Instrumentation
+Write-Host "Step 2: Launching Flight Computer (Backend)..." -ForegroundColor Cyan
+try {
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", "Write-Host 'Flight Computer'; node --require ./flight-computer/instrumentation.js flight-computer/app.js"
+    Write-Host "Flight Computer launched in a new window." -ForegroundColor Green
+}
+catch {
+    Write-Error "Failed to launch Flight Computer."
+}
+
+# 3. Start Mission Control (Frontend)
+Write-Host "Step 3: Launching Mission Control (Frontend)..." -ForegroundColor Cyan
+try {
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd mission-control; npm run dev"
+    Write-Host "Mission Control launched in a new window." -ForegroundColor Green
+}
+catch {
+    Write-Error "Failed to launch Mission Control."
+}
+
+Write-Host "All systems initiated! Go to http://localhost:3001 to view Mission Control." -ForegroundColor Magenta
+Write-Host ""
+Write-Host "PRESS ANY KEY TO STOP THE MISSION AND SHUTDOWN DOCKER..." -ForegroundColor Red -BackgroundColor Yellow
+
+# Wait for key press
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+
+Write-Host ""
+Write-Host "STOPPING Mission and cleaning up..." -ForegroundColor Red
+
+# Stop Docker containers
+docker-compose -f ground-station/docker-compose.yaml down
+
+Write-Host "Docker containers removed. You can now close the other windows." -ForegroundColor Green
