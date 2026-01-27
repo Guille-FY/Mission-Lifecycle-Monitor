@@ -17,7 +17,7 @@ const speedGauge = meter.createObservableGauge('rocket_speed', { description: 'C
 
 // Internal Rocket State
 let state = {
-    status: 'IDLE', // States: IDLE, COUNTDOWN, FLYING, ABORT
+    status: 'IDLE', // States: IDLE, COUNTDOWN, FLYING, ABORT, ORBIT
     fuel: 100,
     altitude: 0,
     speed: 0,
@@ -50,17 +50,44 @@ setInterval(() => {
         if (state.launch_time) {
             state.mission_time = Date.now() - state.launch_time;
         }
-        // Burn fuel
-        if (state.fuel > 0) state.fuel -= 0.5;
 
-        // Increase speed and altitude
-        state.speed += 50 + (Math.random() * 10); // Acceleration + noise
-        state.altitude += (state.speed / 3.6); // Convert km/h to m/s for altitude gain
+        // --- PHASE 1: ASCENT ---
+        // Burn fuel to gain speed
+        if (state.fuel > 0) {
+            state.fuel -= 0.6; // ~166 seconds of fuel
+            state.speed += 170 + (Math.random() * 20); // Accelerate ~28,000 km/h in 160s
+        } else {
+            state.speed -= 50; // Drag if out of fuel but not in orbit (simplified)
+        }
+
+        // Increase altitude based on speed (km/h -> m/s)
+        state.altitude += (state.speed / 3.6);
+
+        // --- PHASE 2: ORBIT INJECTION ---
+        // Target Orbit Altitude: 170km (170,000m)
+        if (state.altitude >= 170000) {
+            state.status = 'ORBIT';
+            state.speed = 27600; // Orbital Velocity (km/h)
+            state.altitude = 170000;
+            console.log("🌌 ORBIT ACHIEVED. MAIN ENGINE CUTOFF (MECO). SYSTEM STABLE.");
+        }
 
         // Simulate Critical Events (Logs)
-        if (Math.random() > 0.95) {
-            console.log("⚠️ High vibration detected in Engine 2");
+        if (Math.random() > 0.98) {
+            console.log("⚠️ Minor fluctuation in cabin pressure");
         }
+    }
+
+    // --- PHASE 3: ORBIT STABILIZATION ---
+    if (state.status === 'ORBIT') {
+        if (state.launch_time) {
+            state.mission_time = Date.now() - state.launch_time;
+        }
+
+        // Micro-adjustments to simulate orbital mechanics
+        state.speed = 27600 + (Math.random() * 50 - 25);
+        state.altitude = 170000 + (Math.random() * 200 - 100);
+        state.fuel = Math.max(state.fuel, 0); // Ensure non-negative
     }
 }, 1000);
 

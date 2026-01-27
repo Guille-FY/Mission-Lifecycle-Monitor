@@ -18,6 +18,10 @@ services:
   # --- TRACES ---
   jaeger:
     image: jaegertracing/all-in-one:latest
+    environment:
+      - QUERY_UI_CONFIG=/etc/jaeger/jaeger-ui.json
+    volumes:
+      - ./jaeger-ui.json:/etc/jaeger/jaeger-ui.json
     ports:
       - "16686:16686" # UI
       - "14250:14250"

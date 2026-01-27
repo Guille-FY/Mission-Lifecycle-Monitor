@@ -92,15 +92,15 @@ If you prefer to run things manually or are on a non-Windows system:
     ```bash
     cd mission-control
     npm install
-    npm run dev
     ```
-    *The dashboard runs on `http://localhost:3001`.*
+    *The dashboard runs on `http://localhost:3000`.*
 
 ---
 
 ## 🎮 Usage
 
-1.  Open your browser to **[http://localhost:3001](http://localhost:3001)**.
+1.  Open your browser to **[http://localhost:3000](http://localhost:3000)**.
+
 2.  **Status**: Typically starts in `IDLE`.
 3.  **Start Mission**: Click the **"INITIATE LAUNCH SEQUENCE"** button.
     *   Observe the countdown.

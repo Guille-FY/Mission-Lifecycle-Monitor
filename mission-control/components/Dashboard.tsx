@@ -8,7 +8,7 @@ import { Play, Square, RotateCcw, Activity, Zap, TrendingUp, Cpu, Gauge } from '
 
 // Types matches Backend state
 type MissionState = {
-    status: 'IDLE' | 'COUNTDOWN' | 'FLYING' | 'ABORT';
+    status: 'IDLE' | 'COUNTDOWN' | 'FLYING' | 'ABORT' | 'ORBIT';
     fuel: number;
     altitude: number;
     speed: number;
@@ -24,14 +24,21 @@ export default function Dashboard() {
         startOtel();
     }, []);
 
+    const getBackfilledHistory = () => {
+        const now = new Date();
+        return Array(60).fill(0).map((_, i) => {
+            const t = new Date(now.getTime() - (59 - i) * 1000);
+            return {
+                time: t.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                altitude: 0,
+                speed: 0,
+                fuel: 100
+            };
+        });
+    };
+
     useEffect(() => {
-        const initialHistory = Array(20).fill(0).map(() => ({
-            time: '00:00:00',
-            altitude: 0,
-            speed: 0,
-            fuel: 100
-        }));
-        setHistory(initialHistory);
+        setHistory(getBackfilledHistory());
 
         const interval = setInterval(async () => {
             try {
@@ -49,6 +56,16 @@ export default function Dashboard() {
                         };
                         const newHistory = [...prev, newPoint];
                         return newHistory.slice(-60);
+                    });
+                } else if (json.status === 'ORBIT') {
+                    setHistory((prev) => {
+                        const newPoint = {
+                            time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                            altitude: Math.floor(json.altitude),
+                            speed: Math.floor(json.speed),
+                            fuel: Math.floor(json.fuel)
+                        };
+                        return [...prev.slice(-60), newPoint].slice(-60);
                     });
                 } else if (json.status === 'IDLE') {
                     setHistory((prev) => {
@@ -69,13 +86,7 @@ export default function Dashboard() {
         await fetch(`http://localhost:8080/${cmd}`, { method: 'POST' });
 
         if (cmd === 'reset') {
-            const resetHistory = Array(20).fill(0).map(() => ({
-                time: '00:00:00',
-                altitude: 0,
-                speed: 0,
-                fuel: 100
-            }));
-            setHistory(resetHistory);
+            setHistory(getBackfilledHistory());
         }
     };
 
@@ -112,7 +123,8 @@ export default function Dashboard() {
                             <div className={`h-2 w-2 rounded-full ${data.status === 'IDLE' ? 'bg-blue-500' :
                                 data.status === 'COUNTDOWN' ? 'bg-amber-500 animate-pulse' :
                                     data.status === 'FLYING' ? 'bg-emerald-500 animate-pulse' :
-                                        data.status === 'ABORT' ? 'bg-red-500 animate-pulse' : 'bg-neutral-600'
+                                        data.status === 'ORBIT' ? 'bg-violet-500' :
+                                            data.status === 'ABORT' ? 'bg-red-500 animate-pulse' : 'bg-neutral-600'
                                 }`} />
                             <span className="text-[12px] font-mono text-neutral-500 uppercase tracking-widest">System Online</span>
                         </div>
@@ -123,8 +135,9 @@ export default function Dashboard() {
                         <div className={`text-xl font-mono border-2 px-6 py-2 inline-block transition-all duration-300 relative overflow-hidden ${data.status === 'IDLE' ? 'border-blue-500 text-blue-500' :
                             data.status === 'COUNTDOWN' ? 'border-amber-500 text-amber-500' :
                                 data.status === 'FLYING' ? 'border-emerald-500 text-emerald-500 bg-emerald-500/10' :
-                                    data.status === 'ABORT' ? 'border-red-500 text-red-500 bg-red-500/10 animate-pulse' :
-                                        'border-neutral-800 text-neutral-500'
+                                    data.status === 'ORBIT' ? 'border-violet-500 text-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]' :
+                                        data.status === 'ABORT' ? 'border-red-500 text-red-500 bg-red-500/10 animate-pulse' :
+                                            'border-neutral-800 text-neutral-500'
                             }`}>
                             <span>{data.status}</span>
                         </div>
@@ -141,10 +154,11 @@ export default function Dashboard() {
                         <Card title="Mission Clock">
                             <div className="flex flex-col items-center py-4">
                                 <span className={`text-7xl font-mono font-light tracking-tighter tabular-nums transition-colors duration-300 ${data.status === 'COUNTDOWN' ? 'text-amber-500' :
-                                    data.status === 'ABORT' ? 'text-red-500' : 'text-white'
+                                    data.status === 'ABORT' ? 'text-red-500' :
+                                        data.status === 'ORBIT' ? 'text-violet-400' : 'text-white'
                                     }`}>
                                     {data.status === 'COUNTDOWN' ? `-${data.countdown.toString().padStart(2, '0')}` :
-                                        data.status === 'FLYING' ? `+${((data.mission_time || 0) / 1000).toFixed(0)}` :
+                                        (data.status === 'FLYING' || data.status === 'ORBIT') ? `+${((data.mission_time || 0) / 1000).toFixed(0)}` :
                                             '00'}
                                 </span>
                                 <span className="text-[10px] text-neutral-600 uppercase tracking-[0.2em] mt-2">Seconds Elapsed</span>
@@ -218,14 +232,16 @@ export default function Dashboard() {
                                     data={history}
                                     index="time"
                                     categories={["altitude"]}
-                                    colors={data.status === 'ABORT' ? ["red"] : data.status === 'FLYING' ? ["emerald"] : ["slate"]}
+                                    colors={data.status === 'ABORT' ? ["red"] : data.status === 'FLYING' ? ["emerald"] : data.status === 'ORBIT' ? ["violet"] : ["slate"]}
                                     showAnimation={true}
                                     showLegend={false}
                                     showGridLines={true}
                                     showXAxis={true}
                                     showYAxis={false}
                                     curveType="monotone"
-                                    autoMinValue={true}
+                                    autoMinValue={false}
+                                    minValue={0}
+                                    valueFormatter={(v) => `${Math.round(v)} m`}
                                 />
                                 <style jsx global>{`
                                     /* Minimalist Chart Overrides for "Notion" look */
@@ -243,6 +259,12 @@ export default function Dashboard() {
                                     .recharts-tooltip-cursor {
                                         stroke: #444 !important;
                                     }
+                                    /* Fix Tooltip Text */
+                                    .recharts-tooltip-item-list li {
+                                        color: #aaa !important;
+                                        font-family: monospace;
+                                        font-size: 0.75rem;
+                                    }
                                 `}</style>
                             </div>
                         </Card>
@@ -258,12 +280,12 @@ export default function Dashboard() {
                                 <span className="text-xs text-neutral-500 ml-2">km/h</span>
                             </div>
                             <div className="w-full bg-neutral-900 h-px mb-1">
-                                <div className={`h-px transition-all duration-300 ease-out ${data.speed > 4000 ? 'bg-red-500' : 'bg-white'
-                                    }`} style={{ width: `${Math.min((data.speed / 5000) * 100, 100)}%` }} />
+                                <div className={`h-px transition-all duration-300 ease-out ${data.speed > 28000 ? 'bg-red-500' : 'bg-white'
+                                    }`} style={{ width: `${Math.min((data.speed / 30000) * 100, 100)}%` }} />
                             </div>
                             <div className="flex justify-between text-[8px] text-neutral-600 font-mono">
                                 <span>0</span>
-                                <span>5000</span>
+                                <span>30000</span>
                             </div>
                         </Card>
 

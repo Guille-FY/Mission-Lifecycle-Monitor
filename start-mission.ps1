@@ -37,7 +37,7 @@ catch {
     Write-Error "Failed to launch Mission Control."
 }
 
-Write-Host "All systems initiated! Go to http://localhost:3001 to view Mission Control." -ForegroundColor Magenta
+Write-Host "All systems initiated! Go to http://localhost:3000 to view Mission Control." -ForegroundColor Magenta
 Write-Host ""
 Write-Host "PRESS ANY KEY TO STOP THE MISSION AND SHUTDOWN DOCKER..." -ForegroundColor Red -BackgroundColor Yellow
 
