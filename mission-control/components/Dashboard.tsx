@@ -463,7 +463,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="pt-12 text-center text-[10px] text-neutral-700 font-mono uppercase tracking-[0.3em]">
-                    Mission Lifecycle Monitor // v0.0.1
+                    Mission Lifecycle Monitor // v1.0.0
                 </div>
 
             </div>
