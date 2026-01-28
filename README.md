@@ -251,18 +251,18 @@ If you prefer to run things manually:
 ```
 Mission-Lifecycle-Monitor/
 ├── flight-computer/       # Backend (Node.js)
-│   ├── Dockerfile         # 🐳 Container definition
+│   ├── Dockerfile         # Docker Container definition
 │   ├── app.js             # Physics Engine & API
 │   └── instrumentation.js # OpenTelemetry setup
 ├── mission-control/       # Frontend (Next.js)
-│   ├── Dockerfile         # 🐳 Container definition
+│   ├── Dockerfile         # Docker Container definition
 │   ├── app/               # React Code
 │   └── components/        # Dashboard Widgets
 ├── ground-station/        # Observability Configs
 │   └── *.yaml             # Prometheus, Loki, OTel Configs
 ├── docs/
 │   └── assets/            # Screenshots & Diagrams
-├── docker-compose.yml     # 🐳 Root Compose (Runs everything)
+├── docker-compose.yml     # Docker Root Compose (Runs everything)
 ├── start-mission.ps1      # Developer Script (Windows)
 ├── start-mission.sh       # Developer Script (Linux/Mac)
 └── package.json           # Root dependencies
