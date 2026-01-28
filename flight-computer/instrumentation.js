@@ -19,14 +19,14 @@ const sdk = new NodeSDK({
 
     // Trace Exporter: Sends spans to OTel Collector via gRPC
     traceExporter: new OTLPTraceExporter({
-        url: 'http://localhost:4317',
+        url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4317',
     }),
 
     // Metric Reader: Sends metrics to OTel Collector via gRPC
     // Export interval set to 1000ms for real-time demo purposes
     metricReader: new PeriodicExportingMetricReader({
         exporter: new OTLPMetricExporter({
-            url: 'http://localhost:4317',
+            url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4317',
         }),
         exportIntervalMillis: 1000,
     }),

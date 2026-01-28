@@ -1,0 +1,72 @@
+version: "3"
+services:
+  # --- MISSION APPS ---
+
+  # Flight Computer (Backend)
+  flight-computer:
+    build:
+      context: ./flight-computer
+    image: flight-computer
+    ports:
+      - "8080:8080" # Exposed for Frontend and User
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=flight-computer
+    depends_on:
+      - otel-collector
+
+  # Mission Control (Frontend)
+  mission-control:
+    build:
+      context: ./mission-control
+    image: mission-control
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://flight-computer:8080
+    depends_on:
+      - flight-computer
+
+  # --- OBSERVABILITY INFRASTRUCTURE (Copied from ground-station) ---
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./ground-station/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "8888:8888" # Metrics endpoint
+    depends_on:
+      - jaeger
+      - prometheus
+      - loki
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - QUERY_UI_CONFIG=/etc/jaeger/jaeger-ui.json
+    volumes:
+      - ./ground-station/jaeger-ui.json:/etc/jaeger/jaeger-ui.json
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250"
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    volumes:
+      - ./ground-station/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090" # UI
+
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./ground-station/loki-config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"

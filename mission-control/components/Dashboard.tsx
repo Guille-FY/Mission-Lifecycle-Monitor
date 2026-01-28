@@ -66,6 +66,24 @@ export default function Dashboard() {
     const [data, setData] = useState<MissionState | null>(null);
     const [history, setHistory] = useState<{ time: string; altitude: number, speed: number, fuel: number }[]>([]);
 
+    // Scroll handling for logs
+    const logContainerRef = useRef<HTMLDivElement>(null);
+    const shouldAutoScrollRef = useRef(true);
+
+    useEffect(() => {
+        if (shouldAutoScrollRef.current && logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+        }
+    }, [data?.events]);
+
+    const handleLogScroll = () => {
+        if (logContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = logContainerRef.current;
+            const isAtBottom = scrollHeight - (scrollTop + clientHeight) < 50;
+            shouldAutoScrollRef.current = isAtBottom;
+        }
+    };
+
 
     useEffect(() => {
         startOtel();
@@ -89,35 +107,56 @@ export default function Dashboard() {
     useEffect(() => {
         setHistory(getBackfilledHistory());
 
-
+        // Keep track of the last time we successfully processed a data point
+        let lastFetchTime = Date.now();
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
         const interval = setInterval(async () => {
             try {
-                const res = await fetch('http://localhost:8080/telemetry');
+                const res = await fetch(`${API_URL}/telemetry`);
                 const json = await res.json();
                 setData(json);
 
+                const now = Date.now();
+                const elapsedSinceLastFetch = now - lastFetchTime;
 
-                if (json.status === 'FLYING') {
+                if (json.status === 'FLYING' || json.status === 'ORBIT') {
                     setHistory((prev) => {
+                        const lastPoint = prev[prev.length - 1];
+                        const gapPoints: typeof prev = [];
+
+                        // If we missed frames (more than 2s gap), interpolate
+                        // We deduct 1000ms as the "expected" interval
+                        if (elapsedSinceLastFetch > 2000 && lastPoint) {
+                            const stepsMissed = Math.floor(elapsedSinceLastFetch / 1000) - 1;
+
+                            if (stepsMissed > 0) {
+                                for (let i = 1; i <= stepsMissed; i++) {
+                                    const fraction = i / (stepsMissed + 1);
+
+                                    // Calculate time for this interpolated point
+                                    // timestamp is roughly lastFetchTime + i seconds
+                                    const t = new Date(lastFetchTime + (i * 1000));
+                                    const timeStr = t.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                                    // Linear Interpolation
+                                    gapPoints.push({
+                                        time: timeStr,
+                                        altitude: Math.floor(lastPoint.altitude + (json.altitude - lastPoint.altitude) * fraction),
+                                        speed: Math.floor(lastPoint.speed + (json.speed - lastPoint.speed) * fraction),
+                                        fuel: Math.floor(lastPoint.fuel + (json.fuel - lastPoint.fuel) * fraction)
+                                    });
+                                }
+                            }
+                        }
+
                         const newPoint = {
                             time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                             altitude: Math.floor(json.altitude),
                             speed: Math.floor(json.speed),
                             fuel: Math.floor(json.fuel)
                         };
-                        const newHistory = [...prev, newPoint];
-                        return newHistory.slice(-60);
-                    });
-                } else if (json.status === 'ORBIT') {
-                    setHistory((prev) => {
-                        const newPoint = {
-                            time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                            altitude: Math.floor(json.altitude),
-                            speed: Math.floor(json.speed),
-                            fuel: Math.floor(json.fuel)
-                        };
-                        return [...prev.slice(-60), newPoint].slice(-60);
+                        return [...prev, ...gapPoints, newPoint].slice(-60);
                     });
                 } else if (json.status === 'IDLE') {
                     setHistory((prev) => {
@@ -126,6 +165,8 @@ export default function Dashboard() {
                         return [...prev.slice(-60), idlePoint];
                     });
                 }
+
+                lastFetchTime = now;
 
             } catch (e) {
                 console.error("Telemetry link lost", e);
@@ -136,7 +177,8 @@ export default function Dashboard() {
     }, []);
 
     const sendCommand = async (cmd: 'start' | 'abort' | 'reset') => {
-        await fetch(`http://localhost:8080/${cmd}`, { method: 'POST' });
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        await fetch(`${API_URL}/${cmd}`, { method: 'POST' });
 
         if (cmd === 'reset') {
             setHistory(getBackfilledHistory());
@@ -335,10 +377,10 @@ export default function Dashboard() {
                         {/* TERMINAL LOG */}
                         <div className="h-[250px]">
                             <Card title="Flight Events" className="h-full overflow-hidden flex flex-col">
-                                <div className="flex-1 min-h-0 overflow-y-scroll font-mono text-xs space-y-1 p-2 bg-neutral-900/50 border border-neutral-800/50 rounded scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
-                                    ref={(el) => {
-                                        if (el) el.scrollTop = el.scrollHeight;
-                                    }}
+                                <div
+                                    ref={logContainerRef}
+                                    onScroll={handleLogScroll}
+                                    className="flex-1 min-h-0 overflow-y-scroll font-mono text-xs space-y-1 p-2 bg-neutral-900/50 border border-neutral-800/50 rounded scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
                                 >
                                     {data.events?.length === 0 && <div className="text-neutral-600 italic">No events recorded.</div>}
                                     {data.events?.map((evt, i) => (

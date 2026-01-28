@@ -2,7 +2,7 @@
 
 **Mission Lifecycle Monitor** is a full-stack observability demonstration project that simulates a rocket launch mission. It integrates a retro-sci-fi "Mission Control" dashboard with a backend "Flight Computer" that generates real-time physics telemetry. The entire system is instrumented with **OpenTelemetry** to demonstrate end-to-end distributed tracing, metrics collection, and system monitoring.
 
-![Mission Control Dashboard](./screenshot.png) *<!-- Add a screenshot here later -->*
+![Mission Control Dashboard](docs/assets/screenshot.png) *<!-- Add a screenshot here later -->*
 
 ## 🏗️ Architecture & Tech Stack
 
@@ -76,7 +76,7 @@ Every command (Launch, Abort, Reset) generates a unique **Trace ID** that propag
 *   **Goal**: Analyze latency and request flows.
 *   **Visual**: A breakdown of how long the backend takes to process a "Start Mission" request.
 
-![Jaeger Trace Visualization](./jaeger-trace.png)
+![Jaeger Trace Visualization](docs/assets/jaeger-trace.png)
 *`POST/ Start` to `mission.launch` span.*
 
 ### 2. 📈 System Metrics (Prometheus)
@@ -84,7 +84,7 @@ The Flight Computer emits physical telemetry at 1Hz.
 *   **Goal**: Monitor trend lines and resource depletion.
 *   **Key Metrics**: `rocket_altitude`, `rocket_speed`, `rocket_fuel_level`.
 
-![Prometheus Metric Graph](./prometheus-metric.png)
+![Prometheus Metric Graph](docs/assets/prometheus-metric.png)
 *`rocket_altitude` graph.*
 
 ### 3. 📜 Event Logs (Loki)
@@ -142,7 +142,23 @@ Before running the mission, ensure you have the following installed:
 
 ## 🚀 How to Run
 
-### Method 1: The "One-Click" Launch (Windows PowerShell)
+### Method 1: Docker Quickstart (Recommended) 🐳
+
+The easiest way to run the mission. Requires **only Docker Desktop**. No Node.js installation needed.
+
+1.  Open terminal in project root.
+2.  Run everything (Frontend + Backend + Observability Stack):
+    ```bash
+    docker-compose up --build
+    ```
+3.  Access Mission Control at **[http://localhost:3000](http://localhost:3000)**.
+    *   *Note: If port 3000 or 8080 are occupied, you may need to stop other services.*
+
+### Method 2: Developer Mode (Hybrid)
+
+If you want to edit code while running, use the helper scripts which run infrastructure in Docker but keep the apps running locally with Node.js.
+
+#### Option A: Windows (PowerShell)
 
 We have provided a comprehensive PowerShell script that orchestrates the entire startup sequence (Docker infrastructure -> Backend -> Frontend).
 
@@ -163,9 +179,22 @@ We have provided a comprehensive PowerShell script that orchestrates the entire 
     *   Find and close the Mission Control window.
     *   Stop and remove all Docker containers.
 
-### Method 2: Manual Start
+#### Option B: Linux/Mac (Bash)
 
-If you prefer to run things manually or are on a non-Windows system:
+For Unix-based systems, we provide a Bash script equivalent:
+
+1.  Open your terminal in the project root.
+2.  Make the script executable (first run only) and run it:
+    ```bash
+    chmod +x start-mission.sh
+    ./start-mission.sh
+    ```
+3.  The script runs processes in the background and saves logs to `flight-computer.log` and `mission-control.log`.
+4.  **Graceful Shutdown**: Press **ENTER** in the terminal to stop all processes and cleanup Docker containers.
+
+### Method 3: Manual Start (Legacy)
+
+If you prefer to run things manually:
 
 1.  **Start Ground Station (Docker)**
     ```bash

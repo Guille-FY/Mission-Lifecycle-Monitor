@@ -1,0 +1,7 @@
+# Root .dockerignore
+node_modules
+.git
+.next
+coverage
+.env.local
+.DS_Store
