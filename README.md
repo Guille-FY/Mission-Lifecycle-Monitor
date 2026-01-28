@@ -273,4 +273,4 @@ Distrubuted under the MIT License. See `LICENSE` for more information.
 
 ---
 
-> Built with 💻 and 🚀 by [Your Name] as a demonstration of Modern Observability Engineering.
+> Built with 💻 and 🚀 by Guillermo Fuentes Yago as a demonstration of Modern Observability Engineering.
