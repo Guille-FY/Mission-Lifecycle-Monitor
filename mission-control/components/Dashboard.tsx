@@ -14,6 +14,7 @@ type MissionState = {
     speed: number;
     countdown: number;
     mission_time: number;
+    events?: { timestamp: string; message: string; type: string }[];
 };
 
 // Color Helper
@@ -268,64 +269,97 @@ export default function Dashboard() {
                     </div>
 
                     {/* CENTER COLUMN: Visualization (2 Cols) */}
-                    <div className="lg:col-span-2 flex flex-col h-[500px]">
-                        <Card title="Telemetry Analysis" className="h-full relative"
-                            action={<div className="flex gap-2 text-[10px] text-neutral-500 font-mono">
-                                <span className={data.status !== 'IDLE' ? "text-red-500 animate-pulse" : ""}>LIVE</span>
-                                <span>REC</span>
-                            </div>}
-                        >
-                            <div className="absolute top-16 left-8 z-10 pointer-events-none">
-                                <div className="text-4xl font-mono font-light text-white"><AnimatedNumber value={data.altitude} /></div>
-                                <div className="text-[10px] text-neutral-500 uppercase tracking-widest mt-1">Altitude (m)</div>
-                            </div>
+                    <div className="lg:col-span-2 flex flex-col gap-6">
 
-                            <div
-                                className="w-full h-full pt-8 font-mono text-[10px]"
-
+                        {/* CHART */}
+                        <div className="h-[350px]">
+                            <Card title="Telemetry Analysis" className="h-full relative"
+                                action={<div className="flex gap-2 text-[10px] text-neutral-500 font-mono">
+                                    <span className={data.status !== 'IDLE' ? "text-red-500 animate-pulse" : ""}>LIVE</span>
+                                    <span>REC</span>
+                                </div>}
                             >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={history}>
-                                        <defs>
-                                            <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={activeColor} stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor={activeColor} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="#222" />
-                                        <XAxis dataKey="time" hide={true} />
-                                        <YAxis hide={true} domain={[0, 'auto']} />
-                                        <Tooltip
-                                            isAnimationActive={false}
-                                            cursor={{ stroke: '#444', strokeWidth: 1 }}
-                                            content={({ payload, active, label }) => {
-                                                if (!active || !payload || payload.length === 0) return null;
-                                                return (
-                                                    <div className="bg-black/90 border border-neutral-800 p-2 text-xs font-mono shadow-xl backdrop-blur-sm">
-                                                        <div className="text-neutral-400 mb-1">{label}</div>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeColor }} />
-                                                            <span className="text-white">
-                                                                {payload[0].value} <span className="text-neutral-500">m</span>
-                                                            </span>
+                                <div className="absolute top-16 left-8 z-10 pointer-events-none">
+                                    <div className="text-4xl font-mono font-light text-white"><AnimatedNumber value={data.altitude} /></div>
+                                    <div className="text-[10px] text-neutral-500 uppercase tracking-widest mt-1">Altitude (m)</div>
+                                </div>
+
+                                <div
+                                    className="w-full h-full pt-8 font-mono text-[10px]"
+
+                                >
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={history}>
+                                            <defs>
+                                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={activeColor} stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor={activeColor} stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="#222" />
+                                            <XAxis dataKey="time" hide={true} />
+                                            <YAxis hide={true} domain={[0, 'auto']} />
+                                            <Tooltip
+                                                isAnimationActive={false}
+                                                cursor={{ stroke: '#444', strokeWidth: 1 }}
+                                                content={({ payload, active, label }) => {
+                                                    if (!active || !payload || payload.length === 0) return null;
+                                                    return (
+                                                        <div className="bg-black/90 border border-neutral-800 p-2 text-xs font-mono shadow-xl backdrop-blur-sm">
+                                                            <div className="text-neutral-400 mb-1">{label}</div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeColor }} />
+                                                                <span className="text-white">
+                                                                    {payload[0].value} <span className="text-neutral-500">m</span>
+                                                                </span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="altitude"
-                                            stroke={activeColor}
-                                            strokeWidth={2}
-                                            fillOpacity={1}
-                                            fill="url(#colorGradient)"
-                                            isAnimationActive={false}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
+                                                    );
+                                                }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="altitude"
+                                                stroke={activeColor}
+                                                strokeWidth={2}
+                                                fillOpacity={1}
+                                                fill="url(#colorGradient)"
+                                                isAnimationActive={false}
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Card>
+                        </div>
+
+                        {/* TERMINAL LOG */}
+                        <div className="h-[250px]">
+                            <Card title="Flight Events" className="h-full overflow-hidden flex flex-col">
+                                <div className="flex-1 min-h-0 overflow-y-scroll font-mono text-xs space-y-1 p-2 bg-neutral-900/50 border border-neutral-800/50 rounded scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+                                    ref={(el) => {
+                                        if (el) el.scrollTop = el.scrollHeight;
+                                    }}
+                                >
+                                    {data.events?.length === 0 && <div className="text-neutral-600 italic">No events recorded.</div>}
+                                    {data.events?.map((evt, i) => (
+                                        <div key={i} className="flex gap-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                                            <span className="text-neutral-600 shrink-0">
+                                                [{new Date(evt.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+                                            </span>
+                                            <span className={
+                                                evt.type === 'SUCCESS' ? 'text-emerald-400' :
+                                                    evt.type === 'WARNING' ? 'text-amber-400' :
+                                                        evt.type === 'ERROR' ? 'text-red-500 font-bold' :
+                                                            'text-neutral-300'
+                                            }>
+                                                {evt.type !== 'INFO' && <span className="font-bold mr-2">{evt.type}</span>}
+                                                {evt.message}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        </div>
                     </div>
 
                     {/* RIGHT COLUMN: Metrics (1 Col) */}
