@@ -5,7 +5,8 @@ services:
   # Flight Computer (Backend)
   flight-computer:
     build:
-      context: ./flight-computer
+      context: .
+      dockerfile: flight-computer/Dockerfile
     image: flight-computer
     ports:
       - "8080:8080" # Exposed for Frontend and User

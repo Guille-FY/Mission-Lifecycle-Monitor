@@ -1,8 +1,19 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 # Mission Lifecycle Monitor 🚀
 
-**Mission Lifecycle Monitor** is a full-stack observability demonstration project that simulates a rocket launch mission. It integrates a retro-sci-fi "Mission Control" dashboard with a backend "Flight Computer" that generates real-time physics telemetry. The entire system is instrumented with **OpenTelemetry** to demonstrate end-to-end distributed tracing, metrics collection, and system monitoring.
+**Mission Lifecycle Monitor** is a full-stack observability showcase project that simulates a complex rocket launch mission.
 
-![Mission Control Dashboard](docs/assets/screenshot.png) *<!-- Add a screenshot here later -->*
+Designed to demonstrate **Operational Intelligence**, it integrates a retro-sci-fi "Glass Cockpit" dashboard with a physics-driven backend. The entire distributed system is instrumented with **OpenTelemetry**, providing deep insights through real-time distributed tracing, metrics collection, and structured logging.
+
+![Mission Control Dashboard](docs/assets/screenshot.png)
+
+## 🌐 Coming Soon: Live Demo
+
+I am working on deploying a hosted version of this project! Soon you will be able to access the **Mission Control** dashboard directly via a public URL.
+
+*   **View Only**: Observe the flight computer simulation in real-time.
+*   **Note**: For full access to the observability stack (Jaeger traces, Prometheus metrics, Loki logs), please use the local Docker deployment.
 
 ## 🏗️ Architecture & Tech Stack
 
@@ -239,19 +250,27 @@ If you prefer to run things manually:
 
 ```
 Mission-Lifecycle-Monitor/
-├── flight-computer/       # Node.js Backend & Physics Engine
-│   ├── app.js             # Main simulation logic & API
-│   └── instrumentation.js # OpenTelemetry SDK setup
-├── mission-control/       # Next.js Frontend Dashboard
-│   ├── app/               # React components & Pages
-│   └── components/        # Dashboard UI widgets
-├── ground-station/        # Infrastructure
-│   ├── docker-compose.yaml
-│   └── *.yaml             # Configs for Prometheus, OTel, etc.
-├── start-mission.ps1      # Orchestration Script
+├── flight-computer/       # Backend (Node.js)
+│   ├── Dockerfile         # 🐳 Container definition
+│   ├── app.js             # Physics Engine & API
+│   └── instrumentation.js # OpenTelemetry setup
+├── mission-control/       # Frontend (Next.js)
+│   ├── Dockerfile         # 🐳 Container definition
+│   ├── app/               # React Code
+│   └── components/        # Dashboard Widgets
+├── ground-station/        # Observability Configs
+│   └── *.yaml             # Prometheus, Loki, OTel Configs
+├── docs/
+│   └── assets/            # Screenshots & Diagrams
+├── docker-compose.yml     # 🐳 Root Compose (Runs everything)
+├── start-mission.ps1      # Developer Script (Windows)
+├── start-mission.sh       # Developer Script (Linux/Mac)
 └── package.json           # Root dependencies
 ```
 
 ## License
+Distrubuted under the MIT License. See `LICENSE` for more information.
 
-This project is for educational and demonstration purposes.
+---
+
+> Built with 💻 and 🚀 by [Your Name] as a demonstration of Modern Observability Engineering.

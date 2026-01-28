@@ -1,11 +1,11 @@
 # Base image
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
 # Install dependencies
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
 # Copy source
 COPY . .
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Production image
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

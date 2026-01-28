@@ -9,7 +9,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy app source
-COPY . .
+COPY flight-computer/ .
 
 # Expose port
 EXPOSE 8080
