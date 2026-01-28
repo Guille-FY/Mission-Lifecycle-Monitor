@@ -77,7 +77,7 @@ Every command (Launch, Abort, Reset) generates a unique **Trace ID** that propag
 *   **Visual**: A breakdown of how long the backend takes to process a "Start Mission" request.
 
 ![Jaeger Trace Visualization](./jaeger-trace.png)
-*Place a screenshot here of a trace showing the `mission.launch` span.*
+*`POST/ Start` to `mission.launch` span.*
 
 ### 2. 📈 System Metrics (Prometheus)
 The Flight Computer emits physical telemetry at 1Hz.
@@ -85,7 +85,7 @@ The Flight Computer emits physical telemetry at 1Hz.
 *   **Key Metrics**: `rocket_altitude`, `rocket_speed`, `rocket_fuel_level`.
 
 ![Prometheus Metric Graph](./prometheus-metric.png)
-*Place a screenshot here of the `rocket_altitude` graph.*
+*`rocket_altitude` graph.*
 
 ### 3. 📜 Event Logs (Loki)
 Structured logs provide the narrative of the mission. The Mission Control dashboard consumes these via a "Live Tail" mechanism.
