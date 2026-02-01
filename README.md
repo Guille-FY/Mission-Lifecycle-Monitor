@@ -8,9 +8,10 @@ Designed to demonstrate **Operational Intelligence**, it integrates a retro-sci-
 
 ![Mission Control Dashboard](docs/assets/screenshot.png)
 
-## 🌐 Coming Soon: Live Demo
+## 🌐 Live Demo
 
-I am working on deploying a hosted version of this project! Soon you will be able to access the **Mission Control** dashboard directly via a public URL.
+You can access the hosted **Mission Control** dashboard directly here:
+**[https://mission-lifecycle-monitor.guillermofy.com/](https://mission-lifecycle-monitor.guillermofy.com/)**
 
 *   **View Only**: Observe the flight computer simulation in real-time.
 *   **Note**: For full access to the observability stack (Jaeger traces, Prometheus metrics, Loki logs), please use the local Docker deployment.
